@@ -1,0 +1,11 @@
+{
+    "description": "Test edition for diffsync",
+    "plugins": [
+        "tiddlywiki/jasmine",
+        "rimir/diffsync"
+    ],
+    "themes": [
+        "tiddlywiki/vanilla",
+        "tiddlywiki/snowwhite"
+    ]
+}
