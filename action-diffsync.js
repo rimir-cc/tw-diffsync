@@ -107,20 +107,22 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 						selections[fd.hunks[h].id] = "source";
 					}
 				}
-				// Check if any hunks are selected as "source"
 				var hasSourceSelections = Object.keys(selections).length > 0;
-				if (hasSourceSelections) {
-					if (op === "apply") {
+				if (op === "apply") {
+					if (hasSourceSelections) {
 						// Apply to target: reconstruct target text with source hunks mixed in
 						updates[fd.field] = diffHunks.reconstructText(fd.sourceVal || "", fd.targetVal || "", fd.hunks, selections);
-					} else {
-						// Apply to source: invert — swap source/target logic
-						var invertedSelections = {};
-						for (var j = 0; j < fd.hunks.length; j++) {
-							if (!selections[fd.hunks[j].id]) {
-								invertedSelections[fd.hunks[j].id] = "source";
-							}
+					}
+				} else {
+					// Apply to source: invert — swap source/target logic
+					var invertedSelections = {};
+					for (var j = 0; j < fd.hunks.length; j++) {
+						if (!selections[fd.hunks[j].id]) {
+							invertedSelections[fd.hunks[j].id] = "source";
 						}
+					}
+					// If any hunks are accepted (inverted has entries), apply
+					if (Object.keys(invertedSelections).length > 0) {
 						updates[fd.field] = diffHunks.reconstructText(fd.targetVal || "", fd.sourceVal || "", fd.hunks, invertedSelections);
 					}
 				}
@@ -132,8 +134,8 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 					}
 					// apply-to-source with "source" selection means keep source (no change)
 				} else if (op === "apply-to-source" && singleLineSelection !== "source") {
-					// Default is "use target" — for apply-to-source, this means overwrite source with target value
-					// Only if the user explicitly toggled? No — default = target, so only apply if toggled
+					// Accepted: overwrite source field with target value
+					updates[fd.field] = fd.targetVal !== undefined ? fd.targetVal : "";
 				}
 			}
 		}

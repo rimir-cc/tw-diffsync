@@ -197,7 +197,7 @@ type: text/vnd.tiddlywiki
 		<!-- Apply button -->
 		<div class="ds-apply-row">
 			<$button class="tc-btn-big-green">
-				<$action-diffsync op="apply" source=<<sourceTitle>> target=<<targetTitle>>/>
+				<$action-diffsync op="apply-to-source" source=<<sourceTitle>> target=<<targetTitle>>/>
 				Apply accepted changes to original
 			</$button>
 		</div>
