@@ -1,0 +1,194 @@
+caption: {{$:/plugins/rimir/diffsync/icon}} panel
+created: 20260325120000000
+modified: 20260325120000000
+title: $:/plugins/rimir/diffsync/panel
+type: text/vnd.tiddlywiki
+
+\whitespace trim
+\procedure diffsync-panel()
+
+<$let
+	sourceState="$:/state/diffsync/source"
+	targetState="$:/state/diffsync/target"
+	resultTiddler="$:/temp/diffsync/result"
+	sourceTitle={{{ [<sourceState>get[text]] }}}
+	targetTitle={{{ [<targetState>get[text]] }}}
+	hasResult={{{ [<resultTiddler>get[text]!is[blank]then[yes]else[no]] }}}
+>
+
+<div class="ds-panel">
+
+<!-- Picker row -->
+<div class="ds-picker-row">
+	<div class="ds-picker">
+		<span class="rr-muted rr-small">Source:</span>
+		<$select tiddler=<<sourceState>> class="ds-select">
+			<option value="">-- select tiddler --</option>
+			<$list filter="[!is[system]!has[draft.of]sort[title]]" variable="t">
+				<option value=<<t>>><$text text=<<t>>/></option>
+			</$list>
+		</$select>
+	</div>
+	<div class="ds-picker">
+		<span class="rr-muted rr-small">Target:</span>
+		<$select tiddler=<<targetState>> class="ds-select">
+			<option value="">-- select tiddler --</option>
+			<$list filter="[!is[system]!has[draft.of]sort[title]]" variable="t">
+				<option value=<<t>>><$text text=<<t>>/></option>
+			</$list>
+		</$select>
+	</div>
+</div>
+
+<div class="ds-actions-row">
+	<$button class="tc-btn-big-green" disabled={{{ [<sourceTitle>is[blank]] [<targetTitle>is[blank]] +[then[yes]first[]] ~[[no]] }}}>
+		<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>>/>
+		Compare
+	</$button>
+	<$button class="tc-btn-invisible rr-link-btn" tooltip="Swap source and target">
+		<$let tmp=<<sourceTitle>>>
+		<$action-setfield $tiddler=<<sourceState>> text=<<targetTitle>>/>
+		<$action-setfield $tiddler=<<targetState>> text=<<tmp>>/>
+		</$let>
+		<%if [<hasResult>match[yes]] %>
+			<$action-diffsync op="compare" source=<<targetTitle>> target=<<sourceTitle>>/>
+		<%endif%>
+		&#x21c4; Swap
+	</$button>
+	<%if [<hasResult>match[yes]] %>
+		<$button class="tc-btn-invisible rr-link-btn" tooltip="Clear comparison">
+			<$action-diffsync op="clear"/>
+			Clear
+		</$button>
+	<%endif%>
+</div>
+
+<!-- Results -->
+<%if [<hasResult>match[yes]] %>
+<div class="ds-results">
+
+	<$let fieldCount={{{ [<resultTiddler>get[text]jsonindexes[]count[]] ~[[0]] }}}>
+	<%if [<fieldCount>match[0]] %>
+		<div class="rr-status-info">No differences found between the two tiddlers.</div>
+	<%else%>
+
+		<!-- Field diffs -->
+		<$list filter="[<resultTiddler>get[text]jsonindexes[]]" variable="idx">
+			<$let
+				fieldName={{{ [<resultTiddler>get[text]jsonget<idx>,[field]] }}}
+				sourceVal={{{ [<resultTiddler>get[text]jsonget<idx>,[sourceVal]] }}}
+				targetVal={{{ [<resultTiddler>get[text]jsonget<idx>,[targetVal]] }}}
+				sourceOnly={{{ [<resultTiddler>get[text]jsonget<idx>,[sourceOnly]] }}}
+				targetOnly={{{ [<resultTiddler>get[text]jsonget<idx>,[targetOnly]] }}}
+				isMultiline={{{ [<resultTiddler>get[text]jsonget<idx>,[isMultiline]] }}}
+				fieldStateKey={{{ [[$:/state/diffsync/field/]addsuffix<fieldName>] }}}
+				fieldSelection={{{ [<fieldStateKey>get[text]] }}}
+			>
+
+			<div class="ds-field-section">
+				<div class="ds-field-header">
+					<span class="ds-field-name">
+						<%if [<sourceOnly>match[true]] %>
+							<span class="rr-badge-circle rr-badge-removed">&minus;</span>
+						<%elseif [<targetOnly>match[true]] %>
+							<span class="rr-badge-circle rr-badge-added">+</span>
+						<%endif%>
+						<$text text=<<fieldName>>/>
+					</span>
+
+					<%if [<isMultiline>!match[true]] %>
+						<!-- Single-line field: simple toggle -->
+						<div class="ds-toggle-group">
+							<$button class={{{ [<fieldSelection>match[source]then[ds-toggle ds-toggle-source]else[ds-toggle]] }}}>
+								<$action-setfield $tiddler=<<fieldStateKey>> text="source"/>
+								source
+							</$button>
+							<$button class={{{ [<fieldSelection>match[source]then[ds-toggle]else[ds-toggle ds-toggle-target]] }}}>
+								<$action-setfield $tiddler=<<fieldStateKey>> text=""/>
+								target
+							</$button>
+						</div>
+					<%endif%>
+				</div>
+
+				<%if [<isMultiline>match[true]] %>
+					<!-- Multiline field: hunk-based display -->
+					<$list filter="[<resultTiddler>get[text]jsonindexes<idx>,[hunks]]" variable="hunkIdx">
+						<$let
+							hunkId={{{ [<resultTiddler>get[text]jsonget<idx>,[hunks],<hunkIdx>,[id]] }}}
+							hunkStateKey={{{ [<fieldStateKey>addsuffix[/hunk/]addsuffix<hunkId>] }}}
+							hunkSelection={{{ [<hunkStateKey>get[text]] }}}
+						>
+						<div class={{{ [<hunkSelection>match[source]then[ds-hunk ds-hunk-source]else[ds-hunk]] }}}>
+							<div class="ds-hunk-header">
+								<span class="rr-muted rr-small">Hunk <$text text={{{ [<hunkId>add[1]] }}}/></span>
+								<div class="ds-toggle-group">
+									<$button class={{{ [<hunkSelection>match[source]then[ds-toggle ds-toggle-source]else[ds-toggle]] }}}>
+										<$action-setfield $tiddler=<<hunkStateKey>> text="source"/>
+										source
+									</$button>
+									<$button class={{{ [<hunkSelection>match[source]then[ds-toggle]else[ds-toggle ds-toggle-target]] }}}>
+										<$action-setfield $tiddler=<<hunkStateKey>> text=""/>
+										target
+									</$button>
+								</div>
+							</div>
+							<pre class="ds-hunk-body"><code><$list filter="[<resultTiddler>get[text]jsonindexes<idx>,[hunks],<hunkIdx>,[lines]]" variable="lineIdx"><$let
+								lineType={{{ [<resultTiddler>get[text]jsonget<idx>,[hunks],<hunkIdx>,[lines],<lineIdx>,[type]] }}}
+								lineText={{{ [<resultTiddler>get[text]jsonget<idx>,[hunks],<hunkIdx>,[lines],<lineIdx>,[text]] }}}
+							><span class={{{ [<lineType>match[delete]then[ds-line-delete]] [<lineType>match[insert]then[ds-line-insert]] [<lineType>match[equal]then[ds-line-equal]] +[first[]] }}}><$text text=<<lineText>>/></span></$let></$list></code></pre>
+						</div>
+						</$let>
+					</$list>
+				<%else%>
+					<!-- Single-line field: show values -->
+					<div class="ds-field-values">
+						<div class={{{ [<fieldSelection>match[source]then[ds-field-value ds-field-value-source ds-field-selected]else[ds-field-value ds-field-value-source]] }}}>
+							<span class="rr-muted rr-small">source:</span>
+							<%if [<sourceVal>is[blank]] %>
+								<span class="rr-muted">(empty)</span>
+							<%else%>
+								<$text text=<<sourceVal>>/>
+							<%endif%>
+						</div>
+						<div class={{{ [<fieldSelection>match[source]then[ds-field-value ds-field-value-target]else[ds-field-value ds-field-value-target ds-field-selected]] }}}>
+							<span class="rr-muted rr-small">target:</span>
+							<%if [<targetVal>is[blank]] %>
+								<span class="rr-muted">(empty)</span>
+							<%else%>
+								<$text text=<<targetVal>>/>
+							<%endif%>
+						</div>
+					</div>
+				<%endif%>
+			</div>
+
+			</$let>
+		</$list>
+
+		<!-- Apply buttons -->
+		<div class="ds-apply-row">
+			<$button class="tc-btn-big-green">
+				<$action-diffsync op="apply" source=<<sourceTitle>> target=<<targetTitle>>/>
+				Apply to target
+			</$button>
+			<$button class="tc-btn-big-green">
+				<$action-diffsync op="apply-to-source" source=<<sourceTitle>> target=<<targetTitle>>/>
+				Apply to source
+			</$button>
+		</div>
+
+	<%endif%>
+	</$let>
+
+</div>
+<%else%>
+	<div class="rr-status-info">Select two tiddlers and click Compare to see differences.</div>
+<%endif%>
+
+</div>
+
+</$let>
+
+\end
+<<diffsync-panel>>

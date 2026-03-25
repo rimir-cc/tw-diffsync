@@ -1,0 +1,51 @@
+created: 20260325120000000
+modified: 20260325120000000
+rdt.hub-category: tools
+rdt.hub-category-name: Tools
+rdt.hub-order: 3
+rdt.order: 1
+rdt.plugin-key: diffsync
+rdt.plugin-name: diffsync
+rdt.plugin-subtitle: Field-level tiddler comparison with selective sync
+rdt.section: Overview
+title: $:/plugins/rimir/diffsync/doc/overview
+type: text/vnd.tiddlywiki
+
+<$transclude $tiddler="$:/plugins/rimir/doc-template/templates/page">
+<$fill $name="body">
+
+!! What it does
+
+diffsync compares two tiddlers field by field. Single-line fields show the source and target values side by side. Multiline fields (like `text`) are diffed at line level using TiddlyWiki's built-in diff-match-patch library, then grouped into hunks with configurable context. You toggle each hunk or field to pick the version you want, then apply the result to the target or back to the source.
+
+!! Features
+
+* ''Field-level comparison'' -- every field (except `title`) is compared independently; fields present in only one tiddler are flagged with +/- badges
+* ''Line-based hunks'' -- multiline fields are diffed line-by-line and grouped into hunks with surrounding context lines (configurable, default 3)
+* ''Per-hunk selective sync'' -- toggle each hunk between "use source" and "use target" before applying
+* ''Bidirectional apply'' -- write the merged result to the target tiddler or back to the source
+* ''Swap'' -- swap source and target with one click; auto-re-compares if results are already shown
+* ''Clean state'' -- all UI state in `$:/state/diffsync/*`, comparison results in `$:/temp/diffsync/result`; cleared automatically on new comparisons
+
+!! Prerequisites
+
+* TiddlyWiki 5.3.0+
+* Theme plugin (`$:/plugins/rimir/theme`) for `rr-` utility classes
+
+!! Quick start
+
+# Open the diffsync panel from the plugin's "panel" tab, or drag `$:/plugins/rimir/diffsync/panel` into your story
+# Select a source and target tiddler from the dropdowns
+# Click ''Compare'' -- field differences appear grouped by field name
+# For single-line fields, click "source" or "target" to select which value to keep
+# For multiline fields, toggle individual hunks -- deleted lines (source-only) are shown in red, inserted lines (target-only) in green
+# Click ''Apply to target'' or ''Apply to source'' to write the selected changes
+
+<$transclude $tiddler="$:/plugins/rimir/doc-template/templates/callout" type="info">
+<$fill $name="body">
+diffsync operates entirely in the browser. The comparison and apply logic runs client-side using tiddlers from the wiki store.
+</$fill>
+</$transclude>
+
+</$fill>
+</$transclude>

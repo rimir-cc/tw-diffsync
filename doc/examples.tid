@@ -1,0 +1,67 @@
+created: 20260325120000000
+modified: 20260325120000000
+rdt.hub-category: tools
+rdt.hub-category-name: Tools
+rdt.hub-order: 3
+rdt.order: 4
+rdt.plugin-key: diffsync
+rdt.plugin-name: diffsync
+rdt.plugin-subtitle: Field-level tiddler comparison with selective sync
+rdt.section: Examples
+title: $:/plugins/rimir/diffsync/doc/examples
+type: text/vnd.tiddlywiki
+
+<$transclude $tiddler="$:/plugins/rimir/doc-template/templates/page">
+<$fill $name="body">
+
+!! Basic comparison
+
+Select two tiddlers in the panel and click Compare. Each differing field appears as a collapsible section:
+
+* ''Single-line fields'' (e.g., `tags`, `caption`, `modified`) show source and target values side by side. A toggle lets you pick which value to keep.
+* ''Multiline fields'' (e.g., `text`) show line-by-line hunks with deleted lines in red and inserted lines in green. Each hunk has its own source/target toggle.
+
+Fields that exist in only one tiddler are marked with a ''+'' (target-only) or ''&minus;'' (source-only) badge.
+
+!! Selective sync workflow
+
+# Compare two tiddlers
+# In the `text` field, you might see three hunks. Toggle hunk 1 to "source" (keep the source version of those lines) and leave hunks 2 and 3 on "target" (accept the target changes)
+# For the `tags` field, toggle to "source" to keep the source's tags
+# Click ''Apply to target'' -- the target tiddler is updated with your selected mix of changes
+# Or click ''Apply to source'' to write in the opposite direction
+
+!! Using the widget directly
+
+You can use `<$action-diffsync>` in your own wikitext outside the panel:
+
+```
+<$button>
+  <$action-diffsync op="compare" source="Meeting Notes" target="Meeting Notes (draft)"/>
+  Compare notes
+</$button>
+```
+
+After comparison, read the result from `$:/temp/diffsync/result`:
+
+```
+<$list filter="[[$:/temp/diffsync/result]get[text]jsonindexes[]]" variable="idx">
+  Field: <$text text={{{ [[$:/temp/diffsync/result]get[text]jsonget<idx>,[field]] }}}/>
+</$list>
+```
+
+!! Integration with minver
+
+If you use the minver plugin for tiddler versioning, you can compare a current tiddler against a snapshot:
+
+# In minver, select a snapshot and use "Materialize" to write it to a temporary tiddler
+# In diffsync, set the materialized snapshot as the source and the current tiddler as the target
+# Compare to see exactly what changed since that snapshot
+# Selectively roll back specific hunks by toggling them to "source" and applying
+
+!! Adjusting context lines
+
+By default, 3 lines of unchanged text are shown around each change. Adjust this in ''Settings > diffsync'' or by editing `$:/config/rimir/diffsync/context-lines`. Setting it to `0` shows only the changed lines; higher values give more surrounding context. Changes take effect on the next comparison.
+
+</$fill>
+</$transclude>

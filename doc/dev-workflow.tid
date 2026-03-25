@@ -1,0 +1,77 @@
+created: 20260325120000000
+modified: 20260325120000000
+rdt.hub-category: tools
+rdt.hub-category-name: Tools
+rdt.hub-order: 3
+rdt.order: 5
+rdt.plugin-key: diffsync
+rdt.plugin-name: diffsync
+rdt.plugin-subtitle: Field-level tiddler comparison with selective sync
+rdt.section: Dev Workflow
+title: $:/plugins/rimir/diffsync/doc/dev-workflow
+type: text/vnd.tiddlywiki
+
+<$transclude $tiddler="$:/plugins/rimir/doc-template/templates/page">
+<$fill $name="body">
+
+!! File layout
+
+```
+dev-wiki/plugins/rimir/diffsync/
+  plugin.info                  -- plugin metadata (v0.1.0)
+  icon.tid                     -- SVG icon
+  diff-hunks.js                -- library: diff computation, hunks, reconstruction
+  diff-hunks.js.meta           -- metadata sidecar
+  action-diffsync.js           -- widget: <$action-diffsync> action widget
+  action-diffsync.js.meta      -- metadata sidecar
+  panel.tid                    -- interactive comparison panel UI
+  styles.tid                   -- CSS (ds-* prefix)
+  settings.tid                 -- ControlPanel settings tab
+  config-context-lines.tid     -- default config: context lines = 3
+  readme.tid                   -- plugin readme
+  README.md                    -- GitHub-facing readme
+  documentation.tid            -- doc-template wrapper
+  changelog.tid                -- version history
+  LICENSE.md                   -- MIT license
+  LICENSE.md.meta              -- license sidecar
+  doc/
+    overview.tid               -- doc-template overview
+    architecture.tid           -- architecture and data flow
+    reference.tid              -- widget API, data formats, state tiddlers
+    examples.tid               -- usage examples
+    dev-workflow.tid            -- this file
+```
+
+!! Restart rules
+
+|!File |!Restart needed? |!Why |
+|`diff-hunks.js` |Yes |Library module -- cached by TW's module system |
+|`action-diffsync.js` |Yes |Widget module -- registered at startup |
+|`panel.tid` |No |Wikitext -- re-rendered on each view |
+|`styles.tid` |No |Stylesheet -- re-read from wiki store |
+|`settings.tid` |No |Wikitext -- re-rendered on each view |
+|`config-context-lines.tid` |No |Read per comparison via `wiki.getTiddler` |
+|Doc tiddlers (`doc/*.tid`) |No |Wikitext |
+
+!! CSS conventions
+
+All CSS classes use the `ds-` prefix to avoid collisions:
+
+* `ds-panel`, `ds-picker-row`, `ds-picker`, `ds-select` -- layout
+* `ds-actions-row`, `ds-apply-row` -- button rows
+* `ds-field-section`, `ds-field-header`, `ds-field-name` -- field display
+* `ds-toggle-group`, `ds-toggle`, `ds-toggle-source`, `ds-toggle-target` -- source/target toggles
+* `ds-field-values`, `ds-field-value`, `ds-field-value-source`, `ds-field-value-target`, `ds-field-selected` -- single-line field values
+* `ds-hunk`, `ds-hunk-header`, `ds-hunk-body`, `ds-hunk-source` -- hunk display
+* `ds-line-equal`, `ds-line-delete`, `ds-line-insert` -- line-level diff coloring
+* `ds-results` -- results container
+
+Theme utility classes (`rr-muted`, `rr-small`, `rr-badge-circle`, `rr-badge-added`, `rr-badge-removed`, `rr-status-info`, `rr-link-btn`, `rr-input-row`, `rr-input`) come from the theme plugin dependency.
+
+!! Dependencies
+
+* `$:/plugins/rimir/theme` -- listed in `plugin.info` `dependents`; provides `rr-` utility classes
+* TW core `diff_match_patch.js` -- used by `diff-hunks.js` via `require()`
+
+</$fill>
+</$transclude>

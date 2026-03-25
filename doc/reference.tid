@@ -1,0 +1,116 @@
+created: 20260325120000000
+modified: 20260325120000000
+rdt.hub-category: tools
+rdt.hub-category-name: Tools
+rdt.hub-order: 3
+rdt.order: 3
+rdt.plugin-key: diffsync
+rdt.plugin-name: diffsync
+rdt.plugin-subtitle: Field-level tiddler comparison with selective sync
+rdt.section: Reference
+title: $:/plugins/rimir/diffsync/doc/reference
+type: text/vnd.tiddlywiki
+
+<$transclude $tiddler="$:/plugins/rimir/doc-template/templates/page">
+<$fill $name="body">
+
+!! `<$action-diffsync>` widget
+
+Action widget that performs comparison and apply operations.
+
+!!! Attributes
+
+|!Attribute |!Default |!Description |
+|`op` |`"compare"` |Operation: `compare`, `apply`, `apply-to-source`, or `clear` |
+|`source` |`""` |Title of the source tiddler |
+|`target` |`""` |Title of the target tiddler |
+
+!!! Operations
+
+; compare
+: Runs field-level comparison between source and target. Stores the result JSON in `$:/temp/diffsync/result` and clears any previous selection state tiddlers. Requires both `source` and `target` to be non-empty.
+; apply
+: Reads the current comparison result and per-field/per-hunk selection states. For each field with selections, computes the merged value and writes it to the ''target'' tiddler. Multiline fields use `reconstructText`; single-line fields use the selected value directly.
+; apply-to-source
+: Same as `apply` but writes to the ''source'' tiddler. For multiline fields, the source/target are swapped in the reconstruction and unselected hunks are inverted to produce the correct result.
+; clear
+: Deletes `$:/temp/diffsync/result` and all `$:/state/diffsync/field/*` tiddlers.
+
+!!! Usage example
+
+```
+<$button>
+  <$action-diffsync op="compare" source="TiddlerA" target="TiddlerB"/>
+  Compare
+</$button>
+```
+
+!! Library: diff-hunks.js
+
+Exported functions from `$:/plugins/rimir/diffsync/diff-hunks.js` (module-type: library):
+
+|!Function |!Signature |!Description |
+|`lineDiff` |`(sourceText, targetText)` |Returns raw diff-match-patch line-level diffs as `[type, text]` tuples |
+|`computeHunks` |`(sourceText, targetText, contextLines?)` |Computes hunks with context (default 3 lines). Returns `[{id, lines}]` |
+|`reconstructText` |`(sourceText, targetText, hunks, selections)` |Rebuilds text from hunks + selection map `{hunkId: "source"}` |
+|`compareFields` |`(wiki, sourceTitle, targetTitle, contextLines?)` |Full field-level comparison. Returns array of field diff entries |
+|`isMultiline` |`(val)` |Returns `true` if the string contains `\n` |
+
+!! Hunk data format
+
+Each hunk object:
+
+```json
+{
+  "id": 0,
+  "lines": [
+    {"type": "equal",  "text": "unchanged line\n"},
+    {"type": "delete", "text": "removed from source\n"},
+    {"type": "insert", "text": "added in target\n"},
+    {"type": "equal",  "text": "unchanged line\n"}
+  ]
+}
+```
+
+* `id` -- integer, sequential starting at 0
+* `lines[].type` -- `"equal"`, `"delete"` (source-only), or `"insert"` (target-only)
+* `lines[].text` -- the line content including its trailing newline
+
+!! Field diff data format
+
+Each entry in the comparison result array:
+
+```json
+{
+  "field": "text",
+  "sourceVal": "source field value",
+  "targetVal": "target field value",
+  "sourceOnly": false,
+  "targetOnly": false,
+  "isMultiline": true,
+  "hunks": [...]
+}
+```
+
+* `field` -- field name (never `"title"`)
+* `sourceVal` / `targetVal` -- stringified values, or `undefined` if the field is absent
+* `sourceOnly` / `targetOnly` -- `true` when the field exists in only one tiddler
+* `isMultiline` -- `true` if either value contains `\n`
+* `hunks` -- only present when `isMultiline` is true; array of hunk objects
+
+!! State tiddler layout
+
+|!Tiddler pattern |!Content |
+|`$:/state/diffsync/source` |Selected source tiddler title |
+|`$:/state/diffsync/target` |Selected target tiddler title |
+|`$:/state/diffsync/field/<fieldName>` |`"source"` = use source value; empty/absent = use target value |
+|`$:/state/diffsync/field/<fieldName>/hunk/<id>` |`"source"` = use source lines for this hunk; empty/absent = use target lines |
+|`$:/temp/diffsync/result` |JSON comparison result (type `application/json`); also has `source` and `target` fields |
+
+!! Config tiddlers
+
+|!Tiddler |!Default |!Description |
+|`$:/config/rimir/diffsync/context-lines` |`3` |Number of unchanged lines shown before and after each hunk |
+
+</$fill>
+</$transclude>

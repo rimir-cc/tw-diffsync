@@ -1,0 +1,20 @@
+caption: {{$:/plugins/rimir/diffsync/icon}} diffsync
+created: 20260325120000000
+modified: 20260325120000000
+tags: $:/tags/ControlPanel/SettingsTab/Rimi
+title: $:/plugins/rimir/diffsync/settings
+type: text/vnd.tiddlywiki
+
+\whitespace trim
+
+!! Context lines
+
+<div class="rr-input-row">
+	Lines of context around each hunk:
+	<$edit-text tiddler="$:/config/rimir/diffsync/context-lines" tag="input" default="3" class="rr-input" style="width:60px"/>
+	<span class="rr-muted">(shown before and after each change)</span>
+</div>
+
+!! Usage
+
+Open the [[diffsync panel|$:/plugins/rimir/diffsync/panel]] to compare two tiddlers and selectively sync changes between them.

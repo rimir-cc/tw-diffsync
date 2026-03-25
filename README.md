@@ -1,0 +1,26 @@
+# diffsync -- field-level tiddler comparison with selective sync
+
+Compare two tiddlers field by field. Single-line fields show source vs target values. Multiline fields (like `text`) are broken into line-based hunks with surrounding context, so you can see exactly what changed. Toggle individual hunks or fields to pick which version to keep, then apply in either direction.
+
+## Key features
+
+- **Field-level comparison** -- every field is compared independently, skipping `title`
+- **Line-based hunks** -- multiline fields use diff-match-patch to produce line-level diffs grouped into hunks with configurable context lines
+- **Per-hunk selective sync** -- toggle each hunk between source and target before applying
+- **Bidirectional apply** -- apply selected changes to the target tiddler or back to the source
+- **Swap and re-compare** -- swap source/target with one click, auto-re-compares if a result exists
+- **Clean state management** -- all UI state lives in `$:/state/diffsync/*` and `$:/temp/diffsync/*`, cleared on new comparisons
+
+## Quick start
+
+1. Open the diffsync panel (plugin tab or drag `$:/plugins/rimir/diffsync/panel` into your story)
+2. Select a source and target tiddler from the dropdowns
+3. Click **Compare** to see field-by-field differences
+4. For single-line fields, toggle between source and target values
+5. For multiline fields, toggle individual hunks
+6. Click **Apply to target** or **Apply to source** to write the selected changes
+
+## Prerequisites
+
+- TiddlyWiki 5.3.0+
+- Theme plugin (`$:/plugins/rimir/theme`) for `rr-` utility classes

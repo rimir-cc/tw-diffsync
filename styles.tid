@@ -1,0 +1,183 @@
+created: 20260325120000000
+modified: 20260325120000000
+tags: $:/tags/Stylesheet
+title: $:/plugins/rimir/diffsync/styles
+type: text/vnd.tiddlywiki
+
+/* Picker row */
+.ds-picker-row {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 8px;
+	flex-wrap: wrap;
+}
+
+.ds-picker {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 150px;
+}
+
+.ds-select {
+	padding: 4px 6px;
+	border: 1px solid <<colour tiddler-border>>;
+	border-radius: 3px;
+	font-size: 0.9em;
+	background: <<colour tiddler-editor-background>>;
+	color: <<colour foreground>>;
+}
+
+.ds-actions-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 12px;
+}
+
+/* Field section */
+.ds-field-section {
+	border: 1px solid <<colour code-border>>;
+	border-radius: 4px;
+	margin-bottom: 8px;
+	overflow: hidden;
+}
+
+.ds-field-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 4px 8px;
+	background: <<colour tiddler-editor-border>>;
+	border-bottom: 1px solid <<colour code-border>>;
+}
+
+.ds-field-name {
+	font-weight: bold;
+	font-size: 0.85em;
+	color: <<colour muted-foreground>>;
+}
+
+/* Toggle buttons */
+.ds-toggle-group {
+	display: flex;
+	border: 1px solid <<colour tiddler-border>>;
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.ds-toggle {
+	padding: 1px 8px;
+	border: none;
+	background: transparent;
+	font-size: 0.8em;
+	cursor: pointer;
+	color: <<colour foreground>>;
+}
+
+.ds-toggle:hover {
+	background: <<colour tiddler-border>>;
+}
+
+.ds-toggle-source {
+	background: rgba(217, 83, 79, 0.15);
+	font-weight: bold;
+}
+
+.ds-toggle-target {
+	background: rgba(40, 167, 69, 0.15);
+	font-weight: bold;
+}
+
+/* Single-line field values */
+.ds-field-values {
+	padding: 4px 8px;
+}
+
+.ds-field-value {
+	padding: 2px 6px;
+	margin: 2px 0;
+	border-radius: 2px;
+	font-size: 0.9em;
+}
+
+.ds-field-value-source {
+	border-left: 3px solid rgba(217, 83, 79, 0.5);
+}
+
+.ds-field-value-target {
+	border-left: 3px solid rgba(40, 167, 69, 0.5);
+}
+
+.ds-field-selected {
+	background: rgba(100, 149, 237, 0.08);
+	font-weight: 500;
+}
+
+/* Hunk */
+.ds-hunk {
+	border-top: 1px solid <<colour code-border>>;
+}
+
+.ds-hunk-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 2px 8px;
+	background: <<colour page-background>>;
+}
+
+.ds-hunk-body {
+	margin: 0;
+	padding: 0;
+	font-size: 0.85em;
+	overflow-x: auto;
+}
+
+.ds-hunk-body code {
+	display: block;
+}
+
+/* Line types */
+.ds-line-equal {
+	display: block;
+	padding: 0 8px;
+	color: <<colour muted-foreground>>;
+}
+
+.ds-line-delete {
+	display: block;
+	padding: 0 8px;
+	background: rgba(217, 83, 79, 0.1);
+}
+
+.ds-line-insert {
+	display: block;
+	padding: 0 8px;
+	background: rgba(40, 167, 69, 0.1);
+}
+
+/* Hunk toggled to "source": source lines highlighted, target lines dimmed */
+.ds-hunk-source .ds-line-delete {
+	background: rgba(40, 167, 69, 0.15);
+	font-weight: 500;
+}
+
+.ds-hunk-source .ds-line-insert {
+	background: rgba(217, 83, 79, 0.08);
+	opacity: 0.5;
+	text-decoration: line-through;
+}
+
+/* Apply row */
+.ds-apply-row {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+/* Results container */
+.ds-results {
+	margin-top: 8px;
+}

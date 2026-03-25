@@ -1,0 +1,12 @@
+title: $:/plugins/rimir/diffsync/documentation
+type: text/vnd.tiddlywiki
+
+<%if [[$:/plugins/rimir/doc-template]has[plugin-type]] %>
+<$tiddler tiddler="$:/plugins/rimir/diffsync/doc/overview">
+<$transclude $tiddler="$:/plugins/rimir/diffsync/doc/overview"/>
+</$tiddler>
+<%else%>
+To display this documentation, the plugin [[$:/plugins/rimir/doc-template]] needs to be installed.
+
+See the [[readme|$:/plugins/rimir/diffsync/readme]] tab for a basic overview.
+<%endif%>

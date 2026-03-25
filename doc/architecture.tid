@@ -1,0 +1,88 @@
+created: 20260325120000000
+modified: 20260325120000000
+rdt.hub-category: tools
+rdt.hub-category-name: Tools
+rdt.hub-order: 3
+rdt.order: 2
+rdt.plugin-key: diffsync
+rdt.plugin-name: diffsync
+rdt.plugin-subtitle: Field-level tiddler comparison with selective sync
+rdt.section: Architecture
+title: $:/plugins/rimir/diffsync/doc/architecture
+type: text/vnd.tiddlywiki
+
+<$transclude $tiddler="$:/plugins/rimir/doc-template/templates/page">
+<$fill $name="body">
+
+!! Module overview
+
+diffsync has two JS modules and a panel UI:
+
+|!File |!Module type |!Role |
+|`diff-hunks.js` |library |Diff computation, hunk grouping, text reconstruction, field comparison |
+|`action-diffsync.js` |widget |`<$action-diffsync>` action widget -- orchestrates compare, apply, and clear operations |
+|`panel.tid` |-- |Interactive UI: tiddler pickers, diff display, hunk toggles, apply buttons |
+
+!! Diff pipeline
+
+The diff pipeline in `diff-hunks.js` works in three stages:
+
+!!! 1. Line-level diff
+
+`lineDiff(sourceText, targetText)` uses `diff_linesToChars_` / `diff_main` / `diff_charsToLines_` from TW's bundled diff-match-patch library. This converts text to per-line tokens, diffs the tokens, then maps back to line strings. The result is an array of `[type, text]` tuples where type is `DIFF_DELETE` (-1), `DIFF_INSERT` (1), or `DIFF_EQUAL` (0).
+
+!!! 2. Hunk computation
+
+`computeHunks(sourceText, targetText, contextLines)` takes the line diff and:
+
+# Splits each diff tuple into individual line objects `{type, text}`
+# Finds contiguous change regions (runs of non-equal lines)
+# Wraps each region with `contextLines` lines of equal text before and after
+# Merges overlapping context regions into a single hunk
+# Returns an array of `{id, lines}` hunks
+
+!!! 3. Text reconstruction
+
+`reconstructText(sourceText, targetText, hunks, selections)` rebuilds the final text based on per-hunk user selections:
+
+# Re-runs `lineDiff` to get the full line sequence
+# Maps each line to its containing hunk (if any) by walking both sequences in parallel
+# Walks all lines: equal lines are always kept; for changed lines inside a hunk, if the hunk is selected as "source", keep delete lines (source text) and skip insert lines (target text); default is "use target" (keep inserts, skip deletes)
+
+!! Field comparison model
+
+`compareFields(wiki, sourceTitle, targetTitle, contextLines)` compares two tiddlers:
+
+* Takes the union of all field names from both tiddlers
+* Skips `title` (always differs)
+* Stringifies values: `Date` via `$tw.utils.stringifyDate`, arrays via `$tw.utils.stringifyList`, everything else via `String()`
+* Detects multiline fields (any value containing `\n`)
+* For multiline fields, computes hunks; for single-line fields, stores source/target values directly
+* Returns an array of diff entries with `field`, `sourceVal`, `targetVal`, `sourceOnly`, `targetOnly`, `isMultiline`, and optionally `hunks`
+
+!! State management
+
+All state is stored in wiki tiddlers:
+
+|!Tiddler |!Purpose |
+|`$:/temp/diffsync/result` |JSON array of field diff entries (type `application/json`); also stores `source` and `target` fields for reference |
+|`$:/state/diffsync/source` |Currently selected source tiddler title |
+|`$:/state/diffsync/target` |Currently selected target tiddler title |
+|`$:/state/diffsync/field/<fieldName>` |Per-field selection: `"source"` or empty (= target) |
+|`$:/state/diffsync/field/<fieldName>/hunk/<id>` |Per-hunk selection for multiline fields: `"source"` or empty |
+
+On each new comparison, all `$:/state/diffsync/field/*` tiddlers are deleted. The clear operation also deletes the result tiddler.
+
+!! Apply logic
+
+The `<$action-diffsync>` widget supports four operations:
+
+* ''compare'' -- runs `compareFields`, stores result, clears old selections
+* ''apply'' -- applies selected changes to the target tiddler
+* ''apply-to-source'' -- applies selected changes to the source tiddler (inverts the selection logic)
+* ''clear'' -- deletes result and all selection state tiddlers
+
+For the apply operations, multiline fields use `reconstructText` with the hunk selections gathered from state tiddlers. For apply-to-source, selections are inverted: unselected hunks become "source" (since source/target are swapped in the reconstruction call). Single-line fields use the direct source/target value based on the toggle state.
+
+</$fill>
+</$transclude>
