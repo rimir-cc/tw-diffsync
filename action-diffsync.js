@@ -25,6 +25,7 @@ ActionDiffsync.prototype.execute = function() {
 	this.actionOp = this.getAttribute("op", "compare");
 	this.actionSource = this.getAttribute("source", "");
 	this.actionTarget = this.getAttribute("target", "");
+	this.actionDefaultSkip = this.getAttribute("default-skip", "no");
 };
 
 ActionDiffsync.prototype.refresh = function(changedTiddlers) {
@@ -55,6 +56,26 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 		}));
 		// Clear all previous selection states
 		clearSelections(wiki);
+		// If default-skip="yes", pre-set all fields/hunks to "source" (skipped)
+		if (this.actionDefaultSkip === "yes") {
+			for (var d = 0; d < fieldDiffs.length; d++) {
+				var fd = fieldDiffs[d];
+				var stateKey = STATE_PREFIX_FIELD + fd.field;
+				if (fd.isMultiline && fd.hunks) {
+					for (var h = 0; h < fd.hunks.length; h++) {
+						wiki.addTiddler(new $tw.Tiddler({
+							title: stateKey + "/hunk/" + fd.hunks[h].id,
+							text: "source"
+						}));
+					}
+				} else {
+					wiki.addTiddler(new $tw.Tiddler({
+						title: stateKey,
+						text: "source"
+					}));
+				}
+			}
+		}
 
 	} else if (op === "apply" || op === "apply-to-source") {
 		if (!sourceTitle || !targetTitle) return true;

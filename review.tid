@@ -42,8 +42,7 @@ type: text/vnd.tiddlywiki
 
 <div class="ds-actions-row">
 	<$button class="tc-btn-big-green" disabled={{{ [<sourceTitle>is[blank]] [<targetTitle>is[blank]] +[then[yes]first[]] ~[[no]] }}}>
-		<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>>/>
-		<!-- Set all to "source" (skipped) by default after compare -->
+		<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>> default-skip="yes"/>
 		Review changes
 	</$button>
 	<%if [<hasResult>match[yes]] %>
