@@ -181,3 +181,68 @@ type: text/vnd.tiddlywiki
 .ds-results {
 	margin-top: 8px;
 }
+
+/* ===== Review Mode ===== */
+
+/* Batch actions */
+.ds-review-batch {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 10px;
+	padding: 6px 0;
+	border-bottom: 1px solid <<colour tiddler-border>>;
+}
+
+/* Accept/Skip buttons */
+.ds-review-toggle {
+	display: flex;
+	gap: 4px;
+}
+
+.ds-btn-accept {
+	padding: 1px 8px;
+	border: 1px solid #28a745;
+	border-radius: 3px;
+	background: rgba(40, 167, 69, 0.1);
+	color: #28a745;
+	font-size: 0.8em;
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.ds-btn-accept:hover {
+	background: rgba(40, 167, 69, 0.25);
+}
+
+.ds-btn-skip {
+	padding: 1px 8px;
+	border: 1px solid <<colour muted-foreground>>;
+	border-radius: 3px;
+	background: transparent;
+	color: <<colour muted-foreground>>;
+	font-size: 0.8em;
+	cursor: pointer;
+}
+
+.ds-btn-skip:hover {
+	background: <<colour tiddler-border>>;
+}
+
+/* Accepted hunk — changes shown clearly */
+.ds-hunk-accepted {
+	border-left: 3px solid #28a745;
+}
+
+/* Skipped hunk — dimmed */
+.ds-hunk-skipped {
+	border-left: 3px solid <<colour muted-foreground>>;
+	opacity: 0.6;
+}
+
+.ds-hunk-skipped .ds-line-insert {
+	text-decoration: line-through;
+}
+
+.ds-hunk-skipped .ds-line-delete {
+	background: rgba(40, 167, 69, 0.08);
+}
