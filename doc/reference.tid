@@ -24,6 +24,7 @@ Action widget that performs comparison and apply operations.
 |`op` |`"compare"` |Operation: `compare`, `apply`, `apply-to-source`, or `clear` |
 |`source` |`""` |Title of the source tiddler |
 |`target` |`""` |Title of the target tiddler |
+|`default-skip` |`"no"` |When `"yes"`, the `compare` operation pre-sets all fields/hunks to "source" (skipped). Used by review mode |
 
 !!! Operations
 
@@ -55,6 +56,7 @@ Exported functions from `$:/plugins/rimir/diffsync/diff-hunks.js` (module-type: 
 |`reconstructText` |`(sourceText, targetText, hunks, selections)` |Rebuilds text from hunks + selection map `{hunkId: "source"}` |
 |`compareFields` |`(wiki, sourceTitle, targetTitle, contextLines?)` |Full field-level comparison. Returns array of field diff entries |
 |`isMultiline` |`(val)` |Returns `true` if the string contains `\n` |
+|`getContextLines` |`(wiki)` |Reads `$:/config/rimir/diffsync/context-lines` and returns the integer value (default 3) |
 
 !! Hunk data format
 
@@ -106,6 +108,19 @@ Each entry in the comparison result array:
 |`$:/state/diffsync/field/<fieldName>` |`"source"` = use source value; empty/absent = use target value |
 |`$:/state/diffsync/field/<fieldName>/hunk/<id>` |`"source"` = use source lines for this hunk; empty/absent = use target lines |
 |`$:/temp/diffsync/result` |JSON comparison result (type `application/json`); also has `source` and `target` fields |
+
+!! Modules
+
+|!File |!Module type |!Description |
+|`diff-hunks.js` |library |Diff computation, hunk grouping, text reconstruction, field comparison, config helper |
+|`action-diffsync.js` |widget |`<$action-diffsync>` action widget -- compare, apply, clear operations |
+|`auto-refresh.js` |startup (browser) |Wiki change listener that re-compares when source or target tiddler changes, and cleans up stale selection states |
+
+!! Views
+
+|!Tiddler |!Description |
+|`panel.tid` |Interactive comparison panel: tiddler pickers, diff display, hunk toggles, apply buttons |
+|`review.tid` |Review mode: shows all changes as accept/skip toggles with batch actions; pre-sets all hunks to skipped via `default-skip="yes"` |
 
 !! Config tiddlers
 

@@ -11,6 +11,8 @@ Compare two tiddlers field by field. Single-line fields show source vs target va
 * ''Line-based hunks'' -- multiline fields use diff-match-patch to produce line-level diffs grouped into hunks with configurable context lines
 * ''Per-hunk selective sync'' -- toggle each hunk between source and target before applying
 * ''Bidirectional apply'' -- apply selected changes to the target tiddler or back to the source
+* ''Review mode'' -- accept or skip individual changes; starts with all changes skipped so you selectively accept what you want
+* ''Auto-refresh'' -- diff view updates live when source or target tiddler is modified
 * ''Swap and re-compare'' -- swap source/target with one click, auto-re-compares if a result exists
 * ''Clean state management'' -- all UI state lives in `$:/state/diffsync/*` and `$:/temp/diffsync/*`, cleared on new comparisons
 

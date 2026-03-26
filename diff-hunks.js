@@ -72,31 +72,39 @@ function computeHunks(sourceText, targetText, contextLines) {
 
 	if (regions.length === 0) return [];
 
-	// Build hunks with context, merging overlapping contexts
+	// Build hunks — one per change region, no merging.
+	// Context lines are truncated at midpoint between adjacent regions to avoid overlap.
 	var hunks = [];
 	var hunkId = 0;
-	var prevEnd = -1;
 
 	for (var r = 0; r < regions.length; r++) {
 		var ctxStart = Math.max(0, regions[r].start - contextLines);
 		var ctxEnd = Math.min(lines.length - 1, regions[r].end + contextLines);
 
-		// Merge with previous hunk if context overlaps
-		if (hunks.length > 0 && ctxStart <= prevEnd + 1) {
-			var lastHunk = hunks[hunks.length - 1];
-			// Extend the last hunk: add lines from prevEnd+1 to ctxEnd
-			for (var m = prevEnd + 1; m <= ctxEnd; m++) {
-				lastHunk.lines.push(lines[m]);
+		// Truncate context to avoid overlapping with adjacent hunks
+		if (r > 0) {
+			var prevRegionEnd = regions[r - 1].end;
+			var gap = regions[r].start - prevRegionEnd - 1;
+			if (gap < contextLines * 2) {
+				// Limit start context to half the gap (rounded down)
+				ctxStart = Math.max(prevRegionEnd + 1 + Math.ceil(gap / 2), regions[r].start - contextLines);
+				ctxStart = Math.min(ctxStart, regions[r].start);
 			}
-			prevEnd = ctxEnd;
-		} else {
-			var hunkLines = [];
-			for (var n = ctxStart; n <= ctxEnd; n++) {
-				hunkLines.push(lines[n]);
-			}
-			hunks.push({ id: hunkId++, lines: hunkLines });
-			prevEnd = ctxEnd;
 		}
+		if (r < regions.length - 1) {
+			var nextRegionStart = regions[r + 1].start;
+			var gapAfter = nextRegionStart - regions[r].end - 1;
+			if (gapAfter < contextLines * 2) {
+				ctxEnd = Math.min(regions[r].end + Math.floor(gapAfter / 2), regions[r].end + contextLines);
+				ctxEnd = Math.max(ctxEnd, regions[r].end);
+			}
+		}
+
+		var hunkLines = [];
+		for (var n = ctxStart; n <= ctxEnd; n++) {
+			hunkLines.push(lines[n]);
+		}
+		hunks.push({ id: hunkId++, lines: hunkLines });
 	}
 
 	return hunks;
@@ -105,9 +113,10 @@ function computeHunks(sourceText, targetText, contextLines) {
 // --- Text reconstruction ---
 
 function reconstructText(sourceText, targetText, hunks, selections) {
+	// Re-run the same line-level diff used to create hunks
 	var diffs = lineDiff(sourceText, targetText);
 
-	// Flatten all lines from diffs
+	// Flatten diffs into individual lines
 	var allLines = [];
 	for (var i = 0; i < diffs.length; i++) {
 		var type = diffs[i][0];
@@ -124,33 +133,24 @@ function reconstructText(sourceText, targetText, hunks, selections) {
 		}
 	}
 
-	// Build a map: line index → hunk id (for lines that are inside a hunk)
-	var lineToHunk = {};
-	var lineIdx = 0;
-	var hunkLineIdx = 0;
-	// Match hunk lines to allLines by walking both sequences
-	for (var h = 0; h < hunks.length; h++) {
-		var hunk = hunks[h];
-		// Find where this hunk's first line matches in allLines
-		var startSearch = hunkLineIdx;
-		for (var s = startSearch; s < allLines.length; s++) {
-			if (allLines[s].text === hunk.lines[0].text && allLines[s].type === hunk.lines[0].type) {
-				// Verify full match
-				var match = true;
-				for (var v = 0; v < hunk.lines.length && s + v < allLines.length; v++) {
-					if (allLines[s + v].text !== hunk.lines[v].text || allLines[s + v].type !== hunk.lines[v].type) {
-						match = false;
-						break;
-					}
-				}
-				if (match) {
-					for (var t = 0; t < hunk.lines.length; t++) {
-						lineToHunk[s + t] = hunk.id;
-					}
-					hunkLineIdx = s + hunk.lines.length;
-					break;
-				}
-			}
+	// Map change regions to hunk IDs.
+	// With 1:1 region-to-hunk mapping (no merging), region N = hunk N.
+	var changeRegions = [];
+	var inChange = false;
+	var changeStart = -1;
+	for (var k = 0; k < allLines.length; k++) {
+		if (allLines[k].type !== "equal") {
+			if (!inChange) { changeStart = k; inChange = true; }
+		} else {
+			if (inChange) { changeRegions.push({ start: changeStart, end: k - 1 }); inChange = false; }
+		}
+	}
+	if (inChange) changeRegions.push({ start: changeStart, end: allLines.length - 1 });
+
+	var lineToHunkId = {};
+	for (var r = 0; r < changeRegions.length && r < hunks.length; r++) {
+		for (var m = changeRegions[r].start; m <= changeRegions[r].end; m++) {
+			lineToHunkId[m] = hunks[r].id;
 		}
 	}
 
@@ -158,18 +158,19 @@ function reconstructText(sourceText, targetText, hunks, selections) {
 	var result = [];
 	for (var l = 0; l < allLines.length; l++) {
 		var line = allLines[l];
-		var hunkId = lineToHunk[l];
-
 		if (line.type === "equal") {
 			result.push(line.text);
-		} else if (hunkId !== undefined && selections[hunkId] === "source") {
-			// User chose "use source" for this hunk
-			if (line.type === "delete") result.push(line.text); // source line — keep
-			// insert lines — skip (target-only, not wanted)
 		} else {
-			// Default: "use target"
-			if (line.type === "insert") result.push(line.text); // target line — keep
-			// delete lines — skip (source-only, not wanted)
+			var hId = lineToHunkId[l];
+			if (hId !== undefined && selections[hId] === "source") {
+				// "source" = keep source version for this hunk
+				if (line.type === "delete") result.push(line.text);
+				// skip insert lines
+			} else {
+				// default = keep target version
+				if (line.type === "insert") result.push(line.text);
+				// skip delete lines
+			}
 		}
 	}
 
@@ -247,6 +248,13 @@ function stringifyFieldValue(val) {
 	return String(val);
 }
 
+// --- Config helper ---
+
+function getContextLines(wiki) {
+	var tiddler = wiki.getTiddler("$:/config/rimir/diffsync/context-lines");
+	return (tiddler && parseInt(tiddler.fields.text, 10)) || 3;
+}
+
 // --- Exports ---
 
 exports.computeHunks = computeHunks;
@@ -254,6 +262,7 @@ exports.reconstructText = reconstructText;
 exports.compareFields = compareFields;
 exports.isMultiline = isMultiline;
 exports.lineDiff = lineDiff;
+exports.getContextLines = getContextLines;
 exports.DIFF_DELETE = DIFF_DELETE;
 exports.DIFF_INSERT = DIFF_INSERT;
 exports.DIFF_EQUAL = DIFF_EQUAL;

@@ -16,12 +16,14 @@ type: text/vnd.tiddlywiki
 
 !! Module overview
 
-diffsync has two JS modules and a panel UI:
+diffsync has three JS modules and two views:
 
 |!File |!Module type |!Role |
-|`diff-hunks.js` |library |Diff computation, hunk grouping, text reconstruction, field comparison |
+|`diff-hunks.js` |library |Diff computation, hunk grouping, text reconstruction, field comparison, config helper |
 |`action-diffsync.js` |widget |`<$action-diffsync>` action widget -- orchestrates compare, apply, and clear operations |
+|`auto-refresh.js` |startup (browser) |Wiki change listener -- re-compares when source or target tiddler changes |
 |`panel.tid` |-- |Interactive UI: tiddler pickers, diff display, hunk toggles, apply buttons |
+|`review.tid` |-- |Review mode: accept/skip per change with batch actions |
 
 !! Diff pipeline
 
@@ -72,6 +74,16 @@ All state is stored in wiki tiddlers:
 |`$:/state/diffsync/field/<fieldName>/hunk/<id>` |Per-hunk selection for multiline fields: `"source"` or empty |
 
 On each new comparison, all `$:/state/diffsync/field/*` tiddlers are deleted. The clear operation also deletes the result tiddler.
+
+!! Auto-refresh
+
+`auto-refresh.js` is a browser-side startup module that registers a wiki change listener. When the source or target tiddler (as recorded in `$:/temp/diffsync/result`) is modified:
+
+# Re-runs `compareFields` using `getContextLines` to read the current config
+# Stores the updated result JSON in `$:/temp/diffsync/result`
+# Cleans up stale selection state tiddlers for fields/hunks that no longer exist in the new diff
+
+This keeps the diff view live -- edits to either tiddler are reflected immediately without manually re-clicking Compare.
 
 !! Apply logic
 

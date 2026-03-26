@@ -41,9 +41,7 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 
 	if (op === "compare") {
 		if (!sourceTitle || !targetTitle) return true;
-		// Read context lines from config
-		var ctxTiddler = wiki.getTiddler("$:/config/rimir/diffsync/context-lines");
-		var contextLines = (ctxTiddler && parseInt(ctxTiddler.fields.text, 10)) || 3;
+		var contextLines = diffHunks.getContextLines(wiki);
 		// Compare fields
 		var fieldDiffs = diffHunks.compareFields(wiki, sourceTitle, targetTitle, contextLines);
 		// Store result
@@ -55,7 +53,7 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 			target: targetTitle
 		}));
 		// Clear all previous selection states
-		clearSelections(wiki);
+		clearSelections(wiki, fieldDiffs);
 		// If default-skip="yes", pre-set all fields/hunks to "source" (skipped)
 		if (this.actionDefaultSkip === "yes") {
 			for (var d = 0; d < fieldDiffs.length; d++) {
@@ -99,7 +97,8 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 			var singleLineSelection = fieldState ? fieldState.fields.text : "";
 
 			if (fd.isMultiline && fd.hunks && fd.hunks.length > 0) {
-				// Multiline field: reconstruct from hunk selections
+				// Multiline: reconstruct text from hunk selections
+				// Same reconstruction for both ops — only the write target differs
 				var selections = {};
 				for (var h = 0; h < fd.hunks.length; h++) {
 					var hunkState = wiki.getTiddler(STATE_PREFIX_FIELD + fd.field + "/hunk/" + fd.hunks[h].id);
@@ -107,57 +106,78 @@ ActionDiffsync.prototype.invokeAction = function(triggeringWidget, event) {
 						selections[fd.hunks[h].id] = "source";
 					}
 				}
-				var hasSourceSelections = Object.keys(selections).length > 0;
-				if (op === "apply") {
-					if (hasSourceSelections) {
-						// Apply to target: reconstruct target text with source hunks mixed in
-						updates[fd.field] = diffHunks.reconstructText(fd.sourceVal || "", fd.targetVal || "", fd.hunks, selections);
-					}
-				} else {
-					// Apply to source: invert — swap source/target logic
-					var invertedSelections = {};
-					for (var j = 0; j < fd.hunks.length; j++) {
-						if (!selections[fd.hunks[j].id]) {
-							invertedSelections[fd.hunks[j].id] = "source";
-						}
-					}
-					// If any hunks are accepted (inverted has entries), apply
-					if (Object.keys(invertedSelections).length > 0) {
-						updates[fd.field] = diffHunks.reconstructText(fd.targetVal || "", fd.sourceVal || "", fd.hunks, invertedSelections);
-					}
+				// Reconstruct: "source" hunks get sourceVal lines, others get targetVal lines
+				var reconstructed = diffHunks.reconstructText(fd.sourceVal || "", fd.targetVal || "", fd.hunks, selections);
+				// Only update if result differs from what's already in the target tiddler
+				var currentVal = (op === "apply") ? fd.targetVal : fd.sourceVal;
+				if (reconstructed !== (currentVal || "")) {
+					updates[fd.field] = reconstructed;
 				}
 			} else {
-				// Single-line field
+				// Single-line field: "source" = use source value, default = use target value
 				if (singleLineSelection === "source") {
-					if (op === "apply") {
-						updates[fd.field] = fd.sourceVal !== undefined ? fd.sourceVal : "";
+					var newVal = fd.sourceVal !== undefined ? fd.sourceVal : "";
+					var curVal = (op === "apply") ? fd.targetVal : fd.sourceVal;
+					if (newVal !== (curVal || "")) {
+						updates[fd.field] = newVal;
 					}
-					// apply-to-source with "source" selection means keep source (no change)
-				} else if (op === "apply-to-source" && singleLineSelection !== "source") {
-					// Accepted: overwrite source field with target value
-					updates[fd.field] = fd.targetVal !== undefined ? fd.targetVal : "";
+				} else {
+					var newVal = fd.targetVal !== undefined ? fd.targetVal : "";
+					var curVal = (op === "apply") ? fd.targetVal : fd.sourceVal;
+					if (newVal !== (curVal || "")) {
+						updates[fd.field] = newVal;
+					}
 				}
 			}
 		}
 
-		// Apply updates if any
+		// Apply updates
 		if (Object.keys(updates).length > 0) {
 			wiki.addTiddler(new $tw.Tiddler(tiddler, updates));
 		}
+		// Re-compare to refresh the diff view
+		var newDiffs = diffHunks.compareFields(wiki, sourceTitle, targetTitle, diffHunks.getContextLines(wiki));
+		wiki.addTiddler(new $tw.Tiddler({
+			title: RESULT_TIDDLER,
+			text: JSON.stringify(newDiffs),
+			type: "application/json",
+			source: sourceTitle,
+			target: targetTitle
+		}));
+		clearSelections(wiki, fieldDiffs);
 
 	} else if (op === "clear") {
 		// Clear comparison results and selections
+		var existingResult = wiki.getTiddler(RESULT_TIDDLER);
+		var existingDiffs = null;
+		if (existingResult) {
+			try { existingDiffs = JSON.parse(existingResult.fields.text); } catch (e) {}
+		}
 		wiki.deleteTiddler(RESULT_TIDDLER);
-		clearSelections(wiki);
+		clearSelections(wiki, existingDiffs);
 	}
 
 	return true;
 };
 
-function clearSelections(wiki) {
+function clearSelections(wiki, fieldDiffs) {
+	// Delete selection state tiddlers by name (don't rely on filter enumeration)
+	if (fieldDiffs) {
+		for (var i = 0; i < fieldDiffs.length; i++) {
+			var fd = fieldDiffs[i];
+			var stateKey = STATE_PREFIX_FIELD + fd.field;
+			wiki.deleteTiddler(stateKey);
+			if (fd.hunks) {
+				for (var h = 0; h < fd.hunks.length; h++) {
+					wiki.deleteTiddler(stateKey + "/hunk/" + fd.hunks[h].id);
+				}
+			}
+		}
+	}
+	// Also do a filter sweep as fallback
 	var tiddlers = wiki.filterTiddlers("[prefix[" + STATE_PREFIX_FIELD + "]]");
-	for (var i = 0; i < tiddlers.length; i++) {
-		wiki.deleteTiddler(tiddlers[i]);
+	for (var j = 0; j < tiddlers.length; j++) {
+		wiki.deleteTiddler(tiddlers[j]);
 	}
 }
 

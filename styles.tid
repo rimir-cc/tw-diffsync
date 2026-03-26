@@ -228,21 +228,38 @@ type: text/vnd.tiddlywiki
 	background: <<colour tiddler-border>>;
 }
 
-/* Accepted hunk — changes shown clearly */
+/* Accepted hunk — new content prominent, old content dimmed */
 .ds-hunk-accepted {
 	border-left: 3px solid #28a745;
 }
 
-/* Skipped hunk — dimmed */
+.ds-hunk-accepted .ds-line-delete {
+	opacity: 0.4;
+	text-decoration: line-through;
+}
+
+.ds-hunk-accepted .ds-line-insert {
+	background: rgba(40, 167, 69, 0.2);
+	font-weight: 500;
+}
+
+/* Skipped hunk — old content kept, new content crossed out */
 .ds-hunk-skipped {
 	border-left: 3px solid <<colour muted-foreground>>;
-	opacity: 0.6;
 }
 
 .ds-hunk-skipped .ds-line-insert {
+	opacity: 0.4;
 	text-decoration: line-through;
 }
 
 .ds-hunk-skipped .ds-line-delete {
-	background: rgba(40, 167, 69, 0.08);
+	background: rgba(100, 100, 100, 0.08);
+}
+
+.ds-status-skipped {
+	font-size: 0.75em;
+	color: <<colour muted-foreground>>;
+	font-style: italic;
+	margin-left: 4px;
 }

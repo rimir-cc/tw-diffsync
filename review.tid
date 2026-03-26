@@ -42,7 +42,7 @@ type: text/vnd.tiddlywiki
 
 <div class="ds-actions-row">
 	<$button class="tc-btn-big-green" disabled={{{ [<sourceTitle>is[blank]] [<targetTitle>is[blank]] +[then[yes]first[]] ~[[no]] }}}>
-		<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>> default-skip="yes"/>
+		<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>>/>
 		Review changes
 	</$button>
 	<%if [<hasResult>match[yes]] %>
@@ -65,31 +65,13 @@ type: text/vnd.tiddlywiki
 		<!-- Batch actions -->
 		<div class="ds-review-batch">
 			<$button class="tc-btn-invisible rr-link-btn">
-				<!-- Accept all: clear all state tiddlers (default="" = use target = accept) -->
-				<$list filter="[prefix[$:/state/diffsync/field/]]" variable="st">
-					<$action-deletetiddler $tiddler=<<st>>/>
-				</$list>
+				<!-- Accept all: re-compare without default-skip → clears all selections → default = accepted -->
+				<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>>/>
 				&#x2713; Accept all
 			</$button>
 			<$button class="tc-btn-invisible rr-link-btn">
-				<!-- Skip all: set all fields and hunks to "source" -->
-				<$list filter="[<resultTiddler>get[text]jsonindexes[]]" variable="idx">
-					<$let
-						fieldName={{{ [<resultTiddler>get[text]jsonget<idx>,[field]] }}}
-						isMultiline={{{ [<resultTiddler>get[text]jsonget<idx>,[isMultiline]] }}}
-						fieldStateKey={{{ [[$:/state/diffsync/field/]addsuffix<fieldName>] }}}
-					>
-					<%if [<isMultiline>match[true]] %>
-						<$list filter="[<resultTiddler>get[text]jsonindexes<idx>,[hunks]]" variable="hunkIdx">
-							<$let hunkId={{{ [<resultTiddler>get[text]jsonget<idx>,[hunks],<hunkIdx>,[id]] }}}>
-							<$action-setfield $tiddler={{{ [<fieldStateKey>addsuffix[/hunk/]addsuffix<hunkId>] }}} text="source"/>
-							</$let>
-						</$list>
-					<%else%>
-						<$action-setfield $tiddler=<<fieldStateKey>> text="source"/>
-					<%endif%>
-					</$let>
-				</$list>
+				<!-- Skip all: re-compare with default-skip → all set to "source" = skipped -->
+				<$action-diffsync op="compare" source=<<sourceTitle>> target=<<targetTitle>> default-skip="yes"/>
 				&#x2717; Skip all
 			</$button>
 		</div>
@@ -119,13 +101,14 @@ type: text/vnd.tiddlywiki
 					</span>
 
 					<%if [<isMultiline>!match[true]] %>
-						<!-- Single-line field: accept/skip toggle -->
+						<!-- Single-line field: skip/accept toggle -->
 						<div class="ds-review-toggle">
 							<%if [<fieldSelection>match[source]] %>
 								<$button class="ds-btn-accept" tooltip="Accept this change">
 									<$action-deletetiddler $tiddler=<<fieldStateKey>>/>
 									&#x2713; Accept
 								</$button>
+								<span class="ds-status-skipped">skipped</span>
 							<%else%>
 								<$button class="ds-btn-skip" tooltip="Skip this change">
 									<$action-setfield $tiddler=<<fieldStateKey>> text="source"/>

@@ -24,7 +24,10 @@ dev-wiki/plugins/rimir/diffsync/
   diff-hunks.js.meta           -- metadata sidecar
   action-diffsync.js           -- widget: <$action-diffsync> action widget
   action-diffsync.js.meta      -- metadata sidecar
+  auto-refresh.js              -- startup: re-compare on source/target change
+  auto-refresh.js.meta         -- metadata sidecar
   panel.tid                    -- interactive comparison panel UI
+  review.tid                   -- review mode UI (accept/skip per change)
   styles.tid                   -- CSS (ds-* prefix)
   settings.tid                 -- ControlPanel settings tab
   config-context-lines.tid     -- default config: context lines = 3
@@ -47,7 +50,9 @@ dev-wiki/plugins/rimir/diffsync/
 |!File |!Restart needed? |!Why |
 |`diff-hunks.js` |Yes |Library module -- cached by TW's module system |
 |`action-diffsync.js` |Yes |Widget module -- registered at startup |
+|`auto-refresh.js` |Yes |Startup module -- registers wiki change listener |
 |`panel.tid` |No |Wikitext -- re-rendered on each view |
+|`review.tid` |No |Wikitext -- re-rendered on each view |
 |`styles.tid` |No |Stylesheet -- re-read from wiki store |
 |`settings.tid` |No |Wikitext -- re-rendered on each view |
 |`config-context-lines.tid` |No |Read per comparison via `wiki.getTiddler` |
@@ -65,6 +70,10 @@ All CSS classes use the `ds-` prefix to avoid collisions:
 * `ds-hunk`, `ds-hunk-header`, `ds-hunk-body`, `ds-hunk-source` -- hunk display
 * `ds-line-equal`, `ds-line-delete`, `ds-line-insert` -- line-level diff coloring
 * `ds-results` -- results container
+* `ds-review-batch`, `ds-review-toggle` -- review mode layout
+* `ds-btn-accept`, `ds-btn-skip` -- review mode accept/skip buttons
+* `ds-hunk-accepted`, `ds-hunk-skipped` -- review mode hunk states
+* `ds-status-skipped` -- skipped status indicator text
 
 Theme utility classes (`rr-muted`, `rr-small`, `rr-badge-circle`, `rr-badge-added`, `rr-badge-removed`, `rr-status-info`, `rr-link-btn`, `rr-input-row`, `rr-input`) come from the theme plugin dependency.
 
