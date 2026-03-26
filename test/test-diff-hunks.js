@@ -112,6 +112,39 @@ describe("diffsync: diff-hunks", function() {
 		});
 	});
 
+	describe("getContextLines", function() {
+
+		it("should return default 3 when no config tiddler", function() {
+			var wiki = setupWiki();
+			var result = diffHunks.getContextLines(wiki);
+			expect(result).toBe(3);
+		});
+
+		it("should read value from config tiddler", function() {
+			var wiki = setupWiki([
+				{title: "$:/config/rimir/diffsync/context-lines", text: "5"}
+			]);
+			var result = diffHunks.getContextLines(wiki);
+			expect(result).toBe(5);
+		});
+
+		it("should return 3 for invalid config value", function() {
+			var wiki = setupWiki([
+				{title: "$:/config/rimir/diffsync/context-lines", text: "abc"}
+			]);
+			var result = diffHunks.getContextLines(wiki);
+			expect(result).toBe(3);
+		});
+
+		it("should return 3 for empty config value", function() {
+			var wiki = setupWiki([
+				{title: "$:/config/rimir/diffsync/context-lines", text: ""}
+			]);
+			var result = diffHunks.getContextLines(wiki);
+			expect(result).toBe(3);
+		});
+	});
+
 	describe("reconstructText", function() {
 
 		it("should return target text when all hunks default (target)", function() {
