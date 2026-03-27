@@ -33,7 +33,7 @@ Action widget that performs comparison and apply operations.
 ; apply
 : Reads the current comparison result and per-field/per-hunk selection states. For each field with selections, computes the merged value and writes it to the ''target'' tiddler. Multiline fields use `reconstructText`; single-line fields use the selected value directly.
 ; apply-to-source
-: Same as `apply` but writes to the ''source'' tiddler. For multiline fields, the source/target are swapped in the reconstruction and unselected hunks are inverted to produce the correct result.
+: Same as `apply` but writes to the ''source'' tiddler. Uses identical reconstruction logic — only the write target differs.
 ; clear
 : Deletes `$:/temp/diffsync/result` and all `$:/state/diffsync/field/*` tiddlers.
 
