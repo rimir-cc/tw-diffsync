@@ -2,6 +2,7 @@ title: $:/plugins/rimir/diffsync/changelog
 type: text/vnd.tiddlywiki
 
 |!Version |!Date |!Changes |
-|0.1.2 |2026-03-26 |Added Jasmine tests for getContextLines. Playwright tests for review mode (accept/skip, apply), auto-refresh. 311 Jasmine + 12 Playwright tests total. |
-|0.1.1 |2026-03-26 |Review mode with accept/skip per change. Auto-refresh on tiddler changes. One hunk per change (no context merging). Refactored shared config helper. |
-|0.1.0 |2026-03-25 |Initial release: field-level comparison, line-based hunks, per-hunk selective sync, bidirectional apply, panel UI |
+|v0.1.3 |2026-03-27 |Fix changelog version prefix, clarify restart rules for plugin shadow tiddlers |
+|v0.1.2 |2026-03-26 |Add Jasmine tests for getContextLines, Playwright tests for review mode and auto-refresh |
+|v0.1.1 |2026-03-26 |Review mode with accept/skip per change, auto-refresh on tiddler changes, one hunk per change, refactored shared config helper |
+|v0.1.0 |2026-03-25 |Initial release: field-level comparison, line-based hunks, per-hunk selective sync, bidirectional apply, panel UI |

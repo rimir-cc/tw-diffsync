@@ -51,12 +51,12 @@ dev-wiki/plugins/rimir/diffsync/
 |`diff-hunks.js` |Yes |Library module -- cached by TW's module system |
 |`action-diffsync.js` |Yes |Widget module -- registered at startup |
 |`auto-refresh.js` |Yes |Startup module -- registers wiki change listener |
-|`panel.tid` |No |Wikitext -- re-rendered on each view |
-|`review.tid` |No |Wikitext -- re-rendered on each view |
-|`styles.tid` |No |Stylesheet -- re-read from wiki store |
-|`settings.tid` |No |Wikitext -- re-rendered on each view |
-|`config-context-lines.tid` |No |Read per comparison via `wiki.getTiddler` |
-|Doc tiddlers (`doc/*.tid`) |No |Wikitext |
+|`panel.tid` |Yes |Plugin shadow tiddler (changes on disk need restart; browser overrides take effect immediately) |
+|`review.tid` |Yes |Plugin shadow tiddler |
+|`styles.tid` |Yes |Plugin shadow tiddler |
+|`settings.tid` |Yes |Plugin shadow tiddler |
+|`config-context-lines.tid` |No |Config tiddler read per comparison via `wiki.getTiddler` (browser override works without restart) |
+|Doc tiddlers (`doc/*.tid`) |Yes |Plugin shadow tiddlers |
 
 !! CSS conventions
 
