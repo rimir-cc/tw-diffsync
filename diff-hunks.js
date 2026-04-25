@@ -14,10 +14,9 @@ var DIFF_EQUAL = 0;
 // --- Line-level diff ---
 
 function lineDiff(sourceText, targetText) {
-	var dmpObj = new dmp.diff_match_patch();
-	var a = dmpObj.diff_linesToChars_(sourceText || "", targetText || "");
-	var diffs = dmpObj.diff_main(a.chars1, a.chars2, false);
-	dmpObj.diff_charsToLines_(diffs, a.lineArray);
+	var a = dmp.diffLinesToChars(sourceText || "", targetText || "");
+	var diffs = dmp.diffMain(a.chars1, a.chars2, {}, false);
+	dmp.diffCharsToLines(diffs, a.lineArray);
 	return diffs;
 }
 
