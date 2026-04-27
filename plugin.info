@@ -3,10 +3,13 @@
     "description": "Field-level tiddler comparison with selective sync",
     "name": "diffsync",
     "author": "rimir",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "core-version": ">=5.4.0",
     "source": "https://github.com/rimir-cc/tw-diffsync",
     "plugin-type": "plugin",
     "list": "readme documentation settings panel review changelog license",
-    "dependents": "$:/plugins/rimir/theme"
+    "dependents": "$:/plugins/rimir/theme",
+    "soft-dependents": [
+        "$:/plugins/rimir/doc-template"
+    ]
 }
