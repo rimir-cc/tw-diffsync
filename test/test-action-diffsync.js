@@ -240,6 +240,21 @@ describe("diffsync: action-diffsync", function() {
 			invokeAction(wiki, {op: "apply", source: "Source", target: "Target"});
 			expect(wiki.getTiddler("Target").fields.text).toBe("b");
 		});
+
+		it("should do nothing when target tiddler is missing", function() {
+			// Compare may have run when target existed; if the user deletes
+			// target before clicking apply, the action must be a clean no-op
+			// rather than crashing or creating a phantom tiddler.
+			var wiki = setupWiki([{title: "Source", text: "hello"}]);
+			wiki.addTiddler({
+				title: RESULT_TIDDLER,
+				text: '[{"field":"text","sourceVal":"hello","targetVal":"world","isMultiline":false}]',
+				type: "application/json"
+			});
+			wiki.addTiddler({title: STATE_PREFIX_FIELD + "text", text: "source"});
+			invokeAction(wiki, {op: "apply", source: "Source", target: "Target"});
+			expect(wiki.getTiddler("Target")).toBeUndefined();
+		});
 	});
 
 	describe("op=apply-to-source", function() {

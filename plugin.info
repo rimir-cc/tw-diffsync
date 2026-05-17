@@ -3,7 +3,7 @@
     "description": "Field-level tiddler comparison with selective sync",
     "name": "diffsync",
     "author": "rimir",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "core-version": ">=5.4.0",
     "source": "https://github.com/rimir-cc/tw-diffsync",
     "plugin-type": "plugin",
